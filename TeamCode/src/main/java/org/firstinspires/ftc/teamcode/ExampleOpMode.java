@@ -1,0 +1,48 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.ArmFeedforward;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+import org.firstinspires.ftc.teamcode.msftc.GearBox;
+import org.firstinspires.ftc.teamcode.msftc.dashboard.TunableNumber;
+import org.firstinspires.ftc.teamcode.msftc.mechanisms.ArmMechanism;
+import org.firstinspires.ftc.teamcode.msftc.GlobalTelemetry;
+import org.firstinspires.ftc.teamcode.msftc.Motor;
+
+@TeleOp(name = "yya")
+public class ExampleOpMode extends LinearOpMode {
+    private TunableNumber target1 = new TunableNumber(this, "target1", 90);
+    private TunableNumber target2 = new TunableNumber(this, "target2", 0);
+
+    private final Motor testMotor = new Motor("armMotor")
+            .withZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE)
+            .withGearBox(GearBox.fromOutputRPM(6000, 60))
+            .enableEncoder()
+            .withDirection(DcMotorSimple.Direction.FORWARD);
+    private final ArmMechanism arm = new ArmMechanism("arm", testMotor)
+            .withLimits(0, 100)
+            .withPID(new PIDController(0.1, 0, 0))
+            .withFeedforward(new ArmFeedforward(0, 0, 0));
+
+    @Override
+    public void runOpMode() {
+        GlobalTelemetry.init(telemetry);
+
+        testMotor.queryMotor(hardwareMap);
+
+        arm.initConfig();
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            if (gamepad1.a) arm.setSetpoint(target1.getValueAsDouble());
+            if (gamepad1.b) arm.setSetpoint(target2.getValueAsDouble());
+
+            arm.update();
+        }
+    }
+}
