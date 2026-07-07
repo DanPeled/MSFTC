@@ -21,6 +21,8 @@ public class ExampleOpMode extends LinearOpMode {
     private final Motor testMotor = new Motor("armMotor")
             .withZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE)
             .withGearBox(GearBox.fromOutputRPM(6000, 60))
+            .withCurrentLimit(20)
+            .withCurrentLimitEnabled()
             .enableEncoder()
             .withDirection(DcMotorSimple.Direction.FORWARD);
     private final ArmMechanism arm = new ArmMechanism("arm", testMotor)

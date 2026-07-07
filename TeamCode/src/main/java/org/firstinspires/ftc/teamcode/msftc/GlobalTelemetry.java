@@ -13,15 +13,14 @@ public class GlobalTelemetry {
 
     public static void warn(String warning) {
         if (m_telemetry != null) {
-            m_telemetry.addLine("⚠ WARNING: " + warning);
+            m_telemetry.addLine("<font color='#FFFF00'>⚠ WARNING: " + warning + "</font>");
             m_telemetry.update();
         }
     }
 
-
     public static void error(String warning) {
         if (m_telemetry != null) {
-            m_telemetry.addLine("⚠ ERROR:" + warning);
+            m_telemetry.addLine("<font color='#FF0000'>✖ ERROR: " + warning + "</font>");
             m_telemetry.update();
         }
     }

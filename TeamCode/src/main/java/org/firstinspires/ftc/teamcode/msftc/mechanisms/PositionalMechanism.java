@@ -1,17 +1,16 @@
 package org.firstinspires.ftc.teamcode.msftc.mechanisms;
 
-import android.graphics.Path;
-
 import androidx.core.math.MathUtils;
 
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.msftc.Alert;
+import org.firstinspires.ftc.teamcode.msftc.GlobalTelemetry;
 import org.firstinspires.ftc.teamcode.msftc.Motor;
 import org.firstinspires.ftc.teamcode.msftc.dashboard.DashboardUtils;
 import org.firstinspires.ftc.teamcode.msftc.dashboard.TunableNumber;
 
+import java.util.Locale;
 import java.util.Optional;
 
 public abstract class PositionalMechanism<T extends PositionalMechanism<T, FFType>, FFType> extends Mechanism {
@@ -21,12 +20,14 @@ public abstract class PositionalMechanism<T extends PositionalMechanism<T, FFTyp
     protected Optional<Double> setpoint = Optional.empty();
     protected FFType ff;
 
+    private Alert m_limitsNotValidAlert = new Alert("Lower limit not valid!", Alert.AlertLevel.WARNING); // modifies text when active
+
     public PositionalMechanism(String name, Motor leadMotor) {
         super(name);
         this.leadMotor = leadMotor;
 
-        lowerLimit = new TunableNumber(getName() + "/Limits", "lower", Double.MIN_VALUE);
-        upperLimit = new TunableNumber(getName() + "/Limits", "upper", Double.MAX_VALUE);
+        lowerLimit = new TunableNumber(getName(), "lowerLimit", Double.MIN_VALUE);
+        upperLimit = new TunableNumber(getName(), "upperLimit", Double.MAX_VALUE);
     }
 
     @SuppressWarnings("unchecked")
@@ -80,6 +81,16 @@ public abstract class PositionalMechanism<T extends PositionalMechanism<T, FFTyp
     }
 
     public void update() {
+        if (lowerLimit.getValueAsDouble() >= upperLimit.getValueAsDouble()) {
+            m_limitsNotValidAlert.text = (String.format(
+                    Locale.US,
+                    "%s Lower limit (%.2f) must be less than upper limit (%.2f)",
+                    getName(),
+                    lowerLimit.getValueAsDouble(),
+                    upperLimit.getValueAsDouble()
+            ));
+            m_limitsNotValidAlert.show();
+        }
         if (!setpoint.isPresent()) return;
 
         double actualSetpoint = MathUtils.clamp(setpoint.orElse(lowerLimit.getValueAsDouble()), lowerLimit.getValueAsDouble(), upperLimit.getValueAsDouble());
@@ -101,6 +112,6 @@ public abstract class PositionalMechanism<T extends PositionalMechanism<T, FFTyp
     }
 
     public void initConfig() {
-        DashboardUtils.uploadConfig(positionPID, getName() + "/PID");
+        DashboardUtils.uploadConfig(positionPID, getName());
     }
 }

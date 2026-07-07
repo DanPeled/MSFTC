@@ -13,7 +13,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+
+import javax.annotation.Nonnegative;
 
 public class Motor {
     // Maybe add background loop to update motor states that arent modified by this accessors
@@ -22,12 +25,17 @@ public class Motor {
     private DcMotorSimple.Direction m_direction;
     private DcMotor.ZeroPowerBehavior m_zeroPowerBehaviour = DcMotor.ZeroPowerBehavior.FLOAT;
     private double m_minOutput = -1.0, m_maxOutput = 1.0;
+    private Optional<Double> m_currentLimit = Optional.empty();
+    private boolean m_currentLimitEnabled = false;
     private Set<Motor> m_followers = new HashSet<>();
     private GearBox m_gearbox;
     private DcMotorEx m_internalMotor;
     private final String m_motorName;
     private double m_positionOffset = 0.0;
     private double m_ticksPerRevolution = MotorType.GOBILDA_6000.getTicksPerRevolution();
+
+    private Alert m_overCurrentAlert = new Alert("Motor is over current!", Alert.AlertLevel.WARNING); // Modifies text on runtime
+    private Alert m_invalidOutputAlert = new Alert("Motor output is outside of valid range!", Alert.AlertLevel.WARNING); // Modifies text on runtime
 
     public Motor(@NonNull String configName) {
         m_motorName = configName;
@@ -45,12 +53,12 @@ public class Motor {
         }
     }
 
-    public Motor(DcMotorEx m) {
+    public Motor(@NonNull DcMotorEx m) {
         m_internalMotor = m;
         m_motorName = m.getDeviceName();
     }
 
-    public Motor(@NonNull HardwareMap hm, String configName) {
+    public Motor(@NonNull HardwareMap hm, @NonNull String configName) {
         this(hm.get(DcMotorEx.class, configName));
     }
 
@@ -59,24 +67,72 @@ public class Motor {
         return this;
     }
 
+    public Motor withCurrentLimit(@Nonnegative double currentLimitAmps) {
+        setCurrentLimit(currentLimitAmps);
+        return this;
+    }
+
+    public Motor withCurrentLimitEnabled() {
+        enableCurrentLimit();
+        return this;
+    }
+
+    public void setCurrentLimit(double currentLimitAmps) {
+        if (currentLimitAmps <= 0) {
+            throw new IllegalArgumentException(String.format(
+                    Locale.US,
+                    "Motor (%s) Current limit must be greater than 0 amps, got %.2f",
+                    m_motorName,
+                    currentLimitAmps
+            ));
+        }
+
+        m_currentLimit = Optional.of(currentLimitAmps);
+
+        if (m_internalMotor != null) {
+            m_internalMotor.setCurrentAlert(currentLimitAmps, CurrentUnit.AMPS);
+        }
+    }
+
+    public boolean isOverCurrent() {
+        return m_currentLimit.isPresent() &&
+                getStatorCurrent() > m_currentLimit.get();
+    }
+
     public double getStatorCurrent() {
         return m_internalMotor.getCurrent(CurrentUnit.AMPS);
     }
 
     public void set(double output) {
-        double finalOutput = MathUtils.clamp(output, m_minOutput, m_maxOutput);
-        if (output != finalOutput) {
-            GlobalTelemetry.warn(String.format(Locale.US, "Motor (%s) Requested output (%.2f) outside range [%.2f, %.2f], scaling down to %.2f",
+        double clampedAndCurrentLimitedOutput = MathUtils.clamp(output, m_minOutput, m_maxOutput);
+        double current = getStatorCurrent();
+
+        if (isOverCurrent() &&
+                m_currentLimitEnabled) {
+            m_overCurrentAlert.text = String.format(Locale.US,
+                    "Motor (%s) current limit exceeded: %.2fA > %.2fA, stopping motor",
+                    m_motorName,
+                    current,
+                    m_currentLimit.orElse(-1.0));
+            m_overCurrentAlert.show();
+
+            clampedAndCurrentLimitedOutput = 0;
+        }
+        if (output != clampedAndCurrentLimitedOutput) {
+            m_invalidOutputAlert.text = String.format(Locale.US, "Motor (%s) Requested output (%.2f) outside range [%.2f, %.2f], scaling down to %.2f",
                     m_motorName,
                     output,
                     m_minOutput,
                     m_maxOutput,
-                    finalOutput));
+                    clampedAndCurrentLimitedOutput);
+
+            m_invalidOutputAlert.show();
         }
-        doActionToMotorAndFollowers((DcMotorEx m) -> {
-            m.setPower(finalOutput);
-        });
+
+        final double finalOutput = clampedAndCurrentLimitedOutput; // Because lambdas require a final variable to be used inside
+        doActionToMotorAndFollowers((motor) -> motor.setPower(finalOutput));
     }
+
 
     public double getPower() {
         return m_internalMotor.getPower();
@@ -196,6 +252,14 @@ public class Motor {
         m_zeroPowerBehaviour = behaviour;
         if (m_internalMotor != null)
             m_internalMotor.setZeroPowerBehavior(behaviour);
+    }
+
+    public void enableCurrentLimit() {
+        m_currentLimitEnabled = true;
+    }
+
+    public void disableCurrentLimit() {
+        m_currentLimitEnabled = false;
     }
 
     @FunctionalInterface
