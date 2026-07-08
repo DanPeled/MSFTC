@@ -1,7 +1,6 @@
-package org.firstinspires.ftc.teamcode.msftc.mechanisms;
+package org.firstinspires.ftc.teamcode.msftc.mechanisms.positional;
 
 import com.arcrobotics.ftclib.controller.wpilibcontroller.ArmFeedforward;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.msftc.Motor;
 
