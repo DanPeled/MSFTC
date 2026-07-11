@@ -5,8 +5,12 @@ import com.acmerobotics.dashboard.config.ValueProvider;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 
+import org.firstinspires.ftc.teamcode.msftc.mechanisms.positional.PositionalMechanism;
+
+import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 public class DashboardUtils {
     private static FtcDashboard getDashboardInstance() {
@@ -35,4 +39,9 @@ public class DashboardUtils {
         uploadConfig(pidController::getI, pidController::setI, where, "I");
         uploadConfig(pidController::getD, pidController::setD, where, "D");
     }
+
+    public static void uploadConfig(PositionalMechanism mechanism, String where) {
+        uploadConfig(mechanism.getPIDController(), where);
+    }
+
 }

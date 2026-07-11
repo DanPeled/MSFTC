@@ -25,6 +25,7 @@ public class FlywheelMechanism extends Mechanism {
 
     public FlywheelMechanism(String name, Motor leadMotor) {
         super(name);
+        m_ff = new SimpleMotorFeedforward(0, 0, 0);
         m_leadMotor = leadMotor;
     }
 
@@ -56,8 +57,8 @@ public class FlywheelMechanism extends Mechanism {
     }
 
 
-    public FlywheelMechanism withFeedforward(SimpleMotorFeedforward ff) {
-        m_ff = ff;
+    public FlywheelMechanism withFeedforward(SimpleMotorFeedforward m_ff) {
+        m_ff = m_ff;
         return this;
     }
 
@@ -82,13 +83,7 @@ public class FlywheelMechanism extends Mechanism {
 
     public void update() {
         if (lowerLimit.getValueAsDouble() >= upperLimit.getValueAsDouble()) {
-            m_limitsNotValidAlert.text = (String.format(
-                    Locale.US,
-                    "%s Lower limit (%.2f) must be less than upper limit (%.2f)",
-                    getName(),
-                    lowerLimit.getValueAsDouble(),
-                    upperLimit.getValueAsDouble()
-            ));
+            m_limitsNotValidAlert.text = (String.format(Locale.US, "%s Lower limit (%.2f) must be less than upper limit (%.2f)", getName(), lowerLimit.getValueAsDouble(), upperLimit.getValueAsDouble()));
             m_limitsNotValidAlert.show();
         }
         if (!m_setpoint.isPresent()) return;
@@ -119,5 +114,10 @@ public class FlywheelMechanism extends Mechanism {
 
     public void initConfig() {
         DashboardUtils.uploadConfig(m_pid, getName());
+
+
+        DashboardUtils.uploadConfig(() -> m_ff.ks, (ks) -> m_ff = new SimpleMotorFeedforward(ks, m_ff.kv, m_ff.ka), getName(), "Ks");
+        DashboardUtils.uploadConfig(() -> m_ff.kv, (kv) -> m_ff = new SimpleMotorFeedforward(m_ff.ks, kv, m_ff.ka), getName(), "Kv");
+        DashboardUtils.uploadConfig(() -> m_ff.ka, (ka) -> m_ff = new SimpleMotorFeedforward(m_ff.ks, m_ff.kv, ka), getName(), "Ka");
     }
 }
