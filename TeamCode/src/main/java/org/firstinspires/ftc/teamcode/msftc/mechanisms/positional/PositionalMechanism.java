@@ -114,4 +114,13 @@ public abstract class PositionalMechanism<T extends PositionalMechanism<T, FFTyp
     public void initConfig() {
         DashboardUtils.uploadConfig(positionPID, getName());
     }
+
+
+    public FFType getFeedForward() {
+        return ff;
+    }
+
+    public PIDController getPIDController() {
+        return positionPID;
+    }
 }

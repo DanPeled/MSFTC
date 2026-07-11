@@ -28,6 +28,14 @@ public class FlywheelMechanism extends Mechanism {
         m_leadMotor = leadMotor;
     }
 
+    public SimpleMotorFeedforward getFeedForward() {
+        return m_ff;
+    }
+
+    public PIDController getPIDController() {
+        return m_pid;
+    }
+
 
     public FlywheelMechanism withLimits(double lowerLimit, double upperLimit) {
         setUpperLimit(upperLimit);
