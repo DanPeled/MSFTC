@@ -25,8 +25,16 @@ public class Motor {
     private DcMotorSimple.Direction m_direction;
     private DcMotor.ZeroPowerBehavior m_zeroPowerBehaviour = DcMotor.ZeroPowerBehavior.FLOAT;
     private double m_minOutput = -1.0, m_maxOutput = 1.0;
-    private Optional<Double> m_currentLimit = Optional.empty();
+    private Optional<Double> m_softCurrentLimit = Optional.empty();
+    private Optional<Double> m_hardCurrentLimit = Optional.empty();
+
     private boolean m_currentLimitEnabled = false;
+
+    private final Debouncer m_softCurrentDebouncer =
+            new Debouncer(0.1); // 100ms
+
+    private final Debouncer m_hardCurrentDebouncer =
+            new Debouncer(0.02); // 20ms
     private Set<Motor> m_followers = new HashSet<>();
     private GearBox m_gearbox;
     private DcMotorEx m_internalMotor;
@@ -67,36 +75,35 @@ public class Motor {
         return this;
     }
 
-    public Motor withCurrentLimit(@Nonnegative double currentLimitAmps) {
-        setCurrentLimit(currentLimitAmps);
-        return this;
-    }
-
     public Motor withCurrentLimitEnabled() {
         enableCurrentLimit();
         return this;
     }
 
-    public void setCurrentLimit(double currentLimitAmps) {
-        if (currentLimitAmps <= 0) {
-            throw new IllegalArgumentException(String.format(
-                    Locale.US,
-                    "Motor (%s) Current limit must be greater than 0 amps, got %.2f",
-                    m_motorName,
-                    currentLimitAmps
-            ));
-        }
+    public Motor withSoftCurrentLimit(@Nonnegative double amps) {
+        if (amps <= 0)
+            throw new IllegalArgumentException("Current limit must be > 0");
 
-        m_currentLimit = Optional.of(currentLimitAmps);
-
-        if (m_internalMotor != null) {
-            m_internalMotor.setCurrentAlert(currentLimitAmps, CurrentUnit.AMPS);
-        }
+        m_softCurrentLimit = Optional.of(amps);
+        return this;
     }
 
-    public boolean isOverCurrent() {
-        return m_currentLimit.isPresent() &&
-                getStatorCurrent() > m_currentLimit.get();
+    public Motor withHardCurrentLimit(@Nonnegative double amps) {
+        if (amps <= 0)
+            throw new IllegalArgumentException("Current limit must be > 0");
+
+        m_hardCurrentLimit = Optional.of(amps);
+        return this;
+    }
+
+    public boolean isOverSoftCurrent() {
+        return m_softCurrentLimit.isPresent() &&
+                getStatorCurrent() > m_softCurrentLimit.get();
+    }
+
+    public boolean isOverHardCurrent() {
+        return m_hardCurrentLimit.isPresent() &&
+                getStatorCurrent() > m_hardCurrentLimit.get();
     }
 
     public double getStatorCurrent() {
@@ -104,33 +111,51 @@ public class Motor {
     }
 
     public void set(double output) {
-        double clampedAndCurrentLimitedOutput = MathUtils.clamp(output, m_minOutput, m_maxOutput);
+        double clampedOutput = MathUtils.clamp(output, m_minOutput, m_maxOutput);
         double current = getStatorCurrent();
 
-        if (isOverCurrent() &&
-                m_currentLimitEnabled) {
-            m_overCurrentAlert.text = String.format(Locale.US,
-                    "Motor (%s) current limit exceeded: %.2fA > %.2fA, stopping motor",
-                    m_motorName,
-                    current,
-                    m_currentLimit.orElse(-1.0));
-            m_overCurrentAlert.show();
+        if (m_currentLimitEnabled) {
+            // Hard limit
+            if (m_hardCurrentLimit.isPresent() &&
+                    m_hardCurrentDebouncer.calculate(
+                            current > m_hardCurrentLimit.get())) {
 
-            clampedAndCurrentLimitedOutput = 0;
+                m_overCurrentAlert.text = String.format(Locale.US,
+                        "Motor (%s) hard current limit exceeded: %.2fA > %.2fA",
+                        m_motorName,
+                        current,
+                        m_hardCurrentLimit.get());
+
+                m_overCurrentAlert.show();
+
+                clampedOutput = 0;
+            }
+            // Soft limit
+            else if (m_softCurrentLimit.isPresent() &&
+                    m_softCurrentDebouncer.calculate(
+                            current > m_softCurrentLimit.get())) {
+
+                double limit = m_softCurrentLimit.get();
+
+                clampedOutput *= limit / current;
+            }
         }
-        if (output != clampedAndCurrentLimitedOutput) {
-            m_invalidOutputAlert.text = String.format(Locale.US, "Motor (%s) Requested output (%.2f) outside range [%.2f, %.2f], scaling down to %.2f",
+
+        if (output != clampedOutput) {
+            m_invalidOutputAlert.text = String.format(Locale.US,
+                    "Motor (%s) output %.2f limited to %.2f",
                     m_motorName,
                     output,
-                    m_minOutput,
-                    m_maxOutput,
-                    clampedAndCurrentLimitedOutput);
+                    clampedOutput);
 
             m_invalidOutputAlert.show();
         }
 
-        final double finalOutput = clampedAndCurrentLimitedOutput; // Because lambdas require a final variable to be used inside
-        doActionToMotorAndFollowers((motor) -> motor.setPower(finalOutput));
+        final double finalOutput = clampedOutput;
+
+        doActionToMotorAndFollowers(
+                motor -> motor.setPower(finalOutput)
+        );
     }
 
 

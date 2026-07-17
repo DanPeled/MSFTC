@@ -23,7 +23,8 @@ public class ExampleOpMode extends LinearOpMode {
             .ofType(MotorType.GOBILDA_6000)
             .withZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE)
             .withGearBox(GearBox.fromOutputRPM(6000, 60))
-            .withCurrentLimit(20)
+            .withHardCurrentLimit(20)
+            .withSoftCurrentLimit(10)
             .withCurrentLimitEnabled()
             .enableEncoder()
             .withDirection(DcMotorSimple.Direction.FORWARD);
