@@ -163,13 +163,25 @@ public class Motor {
         return m_internalMotor.getPower();
     }
 
-    public double getPosition() {
-        return (m_internalMotor.getCurrentPosition() + m_positionOffset) *
-                (360 / m_ticksPerRevolution) / m_gearbox.getRatio();
+    public double getInternalEncoderPosition() {
+        return m_internalMotor.getCurrentPosition();
     }
 
-    public void setEncoderPosition(double position) {
+    public double getPosition() {
+        return convertTicksToPosition(getInternalEncoderPosition()) + m_positionOffset;
+    }
+
+    protected double convertTicksToPosition(double ticks) {
+        return (ticks *
+                (360 / m_ticksPerRevolution) / m_gearbox.getRatio());
+    }
+
+    public void setPosition(double position) {
         m_positionOffset = getPosition() - position;
+    }
+
+    public void setRawPosition(double ticks) {
+        m_positionOffset = getPosition() - convertTicksToPosition(ticks);
     }
 
     public Motor withZeroPowerBehaviour(DcMotor.ZeroPowerBehavior behaviour) {
@@ -183,20 +195,19 @@ public class Motor {
     }
 
     public void setEncoderMode(boolean activated) {
+        m_encoderEnabled = activated;
         if (m_internalMotor != null)
             m_internalMotor.setMode(activated ? DcMotor.RunMode.RUN_USING_ENCODER : DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public Motor enableEncoder() {
-        m_encoderEnabled = true;
-        setEncoderMode(m_encoderEnabled);
+        setEncoderMode(true);
         return this;
     }
 
 
     public Motor disableEncoder() {
-        m_encoderEnabled = false;
-        setEncoderMode(m_encoderEnabled);
+        setEncoderMode(false);
         return this;
     }
 
