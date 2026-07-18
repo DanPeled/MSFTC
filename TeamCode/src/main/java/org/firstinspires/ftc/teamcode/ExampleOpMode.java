@@ -2,17 +2,17 @@ package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.ArmFeedforward;
+import com.danpeled.msftc.GearBox;
+import com.danpeled.msftc.GlobalTelemetry;
+import com.danpeled.msftc.Motor;
+import com.danpeled.msftc.MotorType;
+import com.danpeled.msftc.dashboard.TunableNumber;
+import com.danpeled.msftc.mechanisms.positional.ArmMechanism;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.teamcode.msftc.GearBox;
-import org.firstinspires.ftc.teamcode.msftc.MotorType;
-import org.firstinspires.ftc.teamcode.msftc.dashboard.TunableNumber;
-import org.firstinspires.ftc.teamcode.msftc.mechanisms.positional.ArmMechanism;
-import org.firstinspires.ftc.teamcode.msftc.GlobalTelemetry;
-import org.firstinspires.ftc.teamcode.msftc.Motor;
 
 @TeleOp(name = "yya")
 public class ExampleOpMode extends LinearOpMode {

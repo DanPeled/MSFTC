@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.msftc.dashboard;
+package com.danpeled.msftc.dashboard;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;

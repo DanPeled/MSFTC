@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.msftc;
+package com.danpeled.msftc;
 
 public class GearBox {
     private double m_inputRpm = 6000;

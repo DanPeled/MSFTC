@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.msftc.mechanisms.positional;
+package com.danpeled.msftc.mechanisms.positional;
 
 
 import com.arcrobotics.ftclib.controller.wpilibcontroller.ElevatorFeedforward;
-import com.arcrobotics.ftclib.controller.wpilibcontroller.ElevatorFeedforward;
 
-import org.firstinspires.ftc.teamcode.msftc.Motor;
-import org.firstinspires.ftc.teamcode.msftc.dashboard.DashboardUtils;
+import com.danpeled.msftc.Motor;
+import com.danpeled.msftc.dashboard.DashboardUtils;
 
 public class ElevatorMechanism extends PositionalMechanism<ElevatorMechanism, ElevatorFeedforward> {
     public ElevatorMechanism(String name, Motor leadMotor) {

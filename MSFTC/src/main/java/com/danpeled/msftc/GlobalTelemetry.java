@@ -1,7 +1,7 @@
-package org.firstinspires.ftc.teamcode.msftc;
+package com.danpeled.msftc;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.msftc.dashboard.TunableNumber;
+import com.danpeled.msftc.dashboard.TunableNumber;
 
 public class GlobalTelemetry {
     private static Telemetry m_telemetry;

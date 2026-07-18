@@ -1,14 +1,14 @@
-package org.firstinspires.ftc.teamcode.msftc.mechanisms.positional;
+package com.danpeled.msftc.mechanisms.positional;
 
 import androidx.core.math.MathUtils;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 
-import org.firstinspires.ftc.teamcode.msftc.Alert;
-import org.firstinspires.ftc.teamcode.msftc.Motor;
-import org.firstinspires.ftc.teamcode.msftc.dashboard.DashboardUtils;
-import org.firstinspires.ftc.teamcode.msftc.dashboard.TunableNumber;
-import org.firstinspires.ftc.teamcode.msftc.mechanisms.Mechanism;
+import com.danpeled.msftc.Alert;
+import com.danpeled.msftc.Motor;
+import com.danpeled.msftc.dashboard.DashboardUtils;
+import com.danpeled.msftc.dashboard.TunableNumber;
+import com.danpeled.msftc.mechanisms.Mechanism;
 
 import java.util.Locale;
 import java.util.Optional;

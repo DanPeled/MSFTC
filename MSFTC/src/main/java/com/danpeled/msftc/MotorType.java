@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.msftc;
+package com.danpeled.msftc;
 
 public enum MotorType {
     GOBILDA_6000(28),

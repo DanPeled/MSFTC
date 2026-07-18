@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.msftc.dashboard;
+package com.danpeled.msftc.dashboard;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.ValueProvider;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 
-import org.firstinspires.ftc.teamcode.msftc.mechanisms.positional.PositionalMechanism;
+import com.danpeled.msftc.mechanisms.positional.PositionalMechanism;
 
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
