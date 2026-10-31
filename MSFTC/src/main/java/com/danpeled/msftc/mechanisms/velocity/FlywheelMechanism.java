@@ -28,6 +28,9 @@ public class FlywheelMechanism extends Mechanism {
         super(name);
         m_ff = new SimpleMotorFeedforward(0, 0, 0);
         m_leadMotor = leadMotor;
+
+        lowerLimit = new TunableNumber(getName(), "lowerLimit", Double.MIN_VALUE);
+        upperLimit = new TunableNumber(getName(), "upperLimit", Double.MAX_VALUE);
     }
 
     public SimpleMotorFeedforward getFeedForward() {
